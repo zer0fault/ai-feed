@@ -1,0 +1,111 @@
+---
+import { fetchAllFeeds, SOURCES } from '../lib/feeds';
+import '../styles/global.css';
+
+const { items, errors } = await fetchAllFeeds();
+
+const buildTime = new Date().toLocaleString('en-US', {
+  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+});
+
+function timeAgo(date: Date): string {
+  const diff = Date.now() - date.getTime();
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  if (m < 60) return `${m}m ago`;
+  if (h < 24) return `${h}h ago`;
+  return `${d}d ago`;
+}
+
+const sourceNames = [...new Set(items.map(i => i.source.name))];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>AI Dev Feed</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+
+    <header>
+      <h1>ai<span>/</span>feed</h1>
+      <span id="last-updated">built {buildTime} · {items.length} articles</span>
+    </header>
+
+    {errors.length > 0 && (
+      <div id="errors">
+        {errors.map(e => <span>{e}</span>)}
+      </div>
+    )}
+
+    <div id="filters">
+      <button class="filter-btn active" data-source="all">all</button>
+      {sourceNames.map(name => {
+        const src = SOURCES.find(s => s.name === name)!;
+        return (
+          <button
+            class="filter-btn"
+            data-source={name}
+            style={`--tag-color: ${src.color}`}
+          >
+            {name.toLowerCase()}
+          </button>
+        );
+      })}
+    </div>
+
+    {items.length === 0 && (
+      <div id="empty">no articles fetched — check feed URLs or network</div>
+    )}
+
+    <div id="feed">
+      {items.map(item => (
+        <article
+          class="card"
+          data-source={item.source.name}
+        >
+          <div class="card-meta">
+            <span
+              class="source-tag"
+              style={`color: ${item.source.color}; border-color: ${item.source.color}33; background: ${item.source.color}11`}
+            >
+              {item.source.name}
+            </span>
+            <span class="card-date">{timeAgo(item.pubDate)}</span>
+          </div>
+          <div class="card-title">
+            <a href={item.link} target="_blank" rel="noopener noreferrer">
+              {item.title}
+            </a>
+          </div>
+          {item.description && (
+            <p class="card-desc">{item.description}</p>
+          )}
+        </article>
+      ))}
+    </div>
+
+    <script>
+      const btns = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+      const cards = document.querySelectorAll<HTMLElement>('.card');
+
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const source = btn.dataset.source!;
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          cards.forEach(card => {
+            card.hidden = source !== 'all' && card.dataset.source !== source;
+          });
+        });
+      });
+    </script>
+
+  </body>
+</html>
