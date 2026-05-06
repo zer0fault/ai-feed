@@ -1,6 +1,6 @@
 # ai-news-dashboard
 
-![ai-news-dashboard](https://i.gyazo.com/361c4c06bd10caefd967da5f181e3bc0.png)
+![ai-news-dashboard](docs/img/screenshot.png)
 
 A minimal, dark RSS dashboard for staying up to date with AI news as a developer. Aggregates posts from Anthropic, OpenAI, Google DeepMind, Hugging Face, Mistral, and major tech media — sorted by recency, filterable by source.
 
